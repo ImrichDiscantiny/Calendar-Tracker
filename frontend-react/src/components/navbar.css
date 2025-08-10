@@ -1,0 +1,7 @@
+div:has(> span.active-span) {
+  background-color: #1639a4;
+}
+
+.active-span {
+  color: rgba(255, 255, 255, 1);
+}
