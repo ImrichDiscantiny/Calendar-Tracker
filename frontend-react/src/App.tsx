@@ -18,6 +18,7 @@ function App() {
           <Route path="/" element={<Home />}></Route>
           <Route path="/timeline" element={<CalendarMain />}></Route>
           <Route path="/stats" element={<StatsPage />}></Route>
+          <Route path="/user" element={<StatsPage />}></Route>
         </Routes>
       </main>
     </div>

@@ -3,11 +3,10 @@ import {IconBaseProps} from 'react-icons';
 import {FaArrowLeft} from 'react-icons/fa';
 import {FaArrowRight} from 'react-icons/fa';
 import calendarHeader from './map-calendar-header';
-import calendarTable from './map-calendar-row';
+import calendarTable from './map-calendar-grid';
 interface DayItem {
   activity: any | null;
   heightSpan: number;
-  isEmpty: boolean;
 }
 
 interface Row {
@@ -54,7 +53,7 @@ export function CalendarMain() {
 
   function organiseActivities(activities: any[]) {
     const currentWorktimes: Row[] = [];
-    for (let i = 6; i < 19; i++) {
+    for (let i = 6; i < 21; i++) {
       currentWorktimes.push({
         time: i,
         days: [[], [], [], [], []],
@@ -63,11 +62,6 @@ export function CalendarMain() {
         overlap: false,
         spanIndex: [],
       });
-    }
-
-    if (activities.length === 0) {
-      console.log('old');
-      return currentWorktimes;
     }
 
     // place activities inside calendar
@@ -85,13 +79,13 @@ export function CalendarMain() {
 
       const workIndex = startHours - 6;
 
-      console.log(activities[i], workIndex, startHours);
+      // console.log(activities[i], workIndex, startHours);
 
       for (let j = workIndex; j < workIndex + duration; j++) {
         const currTime = currentWorktimes[j];
 
         if (workIndex < 13 && startHours === currTime.time) {
-          const row = {activity, heightSpan: duration === 0.5 ? 1 : duration, isEmpty: false};
+          const row = {activity, heightSpan: duration === 0.5 ? 1 : duration};
 
           currTime.days[dayIndex].push(row);
 
@@ -108,32 +102,56 @@ export function CalendarMain() {
       }
     }
 
+    const wlen = currentWorktimes.length;
+
+    for (let i = 0; i < 5; i++) {
+      let startIndex = -1;
+      let spanH = 0;
+
+      for (let j = 0; j < wlen; j++) {
+        if (currentWorktimes[j].days[i].length === 0) {
+          if (startIndex === -1) {
+            startIndex = j;
+            currentWorktimes[j].isEmpty = false;
+          } else {
+            currentWorktimes[j].overlap = true;
+            currentWorktimes[j].spanIndex.push(i + 1);
+          }
+          spanH++;
+        } else if (currentWorktimes[j].days[i].length !== 0) {
+          let jumpSpan = 0;
+          currentWorktimes[j].days[i].map((day) => {
+            if (day.heightSpan > jumpSpan) {
+              jumpSpan = day.heightSpan;
+            }
+          });
+
+          j = j + jumpSpan - 1;
+
+          if (spanH !== 0) {
+            const row = {activity: null, heightSpan: spanH};
+            currentWorktimes[startIndex].days[i].push(row);
+          }
+          spanH = 0;
+          startIndex = -1;
+        }
+        // if (spanH / 5 === 1 && spanH !== 0) {
+        //   const row = {activity: null, heightSpan: spanH};
+        //   currentWorktimes[startIndex].days[i].push(row);
+
+        //   spanH = 0;
+        //   startIndex = -1;
+        // }
+      }
+
+      if (spanH !== 0) {
+        const row = {activity: null, heightSpan: spanH};
+        currentWorktimes[startIndex].days[i].push(row);
+      }
+    }
+
     console.log('new');
     return currentWorktimes;
-
-    // newWorktimes = currentWorktimes.map((t) => {
-    //   if (startHours === t.time) {
-    //     const row = {activity, heightSpan: duration === 0.5 ? 1 : duration, isEmpty: false};
-
-    //     t.days[dayIndex].push(row);
-
-    //     const currLen = t.days[dayIndex].length;
-    //     if (currLen > t.maxHeight) t.maxHeight = currLen;
-
-    //     t.isEmpty = false;
-    //     saved = true;
-    //     return t;
-    //   } else {
-    //     if (saved && spanCounter > 0) {
-    //       t.overlap = true;
-    //       spanCounter--;
-    //       t.spanIndex.push(dayIndex + 1);
-    //     }
-    //     return t;
-    //   }
-    // });
-
-    // aggregate timestamps based on day
   }
 
   function get_YYYY_MM_DD(first: Date, last: Date) {
@@ -189,7 +207,7 @@ export function CalendarMain() {
       </div>
 
       <section>
-        <div className="grid grid-cols-[10%_repeat(5,_1fr)] grid-rows-[repeat(15,_auto)] gap-y-2">
+        <div className=" grid grid-cols-[10%_repeat(5,_1fr)] grid-rows-[repeat(16,_auto)] gap-y-2 ">
           <div className="row-start-1 col-start-1 col-span-1 w-[50%]"></div>
 
           {[calendarHeader(currDates), ...calendarTable(activities)]}
