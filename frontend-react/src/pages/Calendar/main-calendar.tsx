@@ -1,9 +1,10 @@
-import {createElement, FunctionComponent, useState, useRef, useEffect} from 'react';
+import {createElement, FunctionComponent, useState, useRef, useEffect, useMemo} from 'react';
 import {IconBaseProps} from 'react-icons';
 import {FaArrowLeft} from 'react-icons/fa';
 import {FaArrowRight} from 'react-icons/fa';
-import calendarHeader from './map-calendar-header';
-import calendarTable from './map-calendar-grid';
+
+import {CalendarGrid} from './calendar-grid';
+
 interface DayItem {
   activity: any | null;
   heightSpan: number;
@@ -28,31 +29,25 @@ export function CalendarMain() {
 
   const hasInitialized = useRef(false);
 
-  if (!hasInitialized.current) {
-    const currDate = new Date();
-    const currDay = currDate.getDay() - 1;
-    const firstDay = new Date();
-    firstDay.setDate(currDate.getDate() - currDay);
-
-    updateDays(firstDay);
-    hasInitialized.current = true;
-  }
-
   useEffect(() => {
+    if (!hasInitialized.current) return;
     const lastDayInWeek = new Date(firstDayInWeek.getTime() + 5 * 24 * 60 * 60 * 1000);
 
     const [first, last] = get_YYYY_MM_DD(firstDayInWeek, lastDayInWeek);
+    console.log('Time:', first, last);
+
     fetch(`/api/activity/${first}/${last}`)
       .then((res) => res.json())
       .then((data) => {
-        setActivities(organiseActivities(data.result));
-        console.log('Data:', activities);
+        setActivities(data.result);
       })
       .catch((err) => console.error('Fetch error:', err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstDayInWeek]);
 
-  function organiseActivities(activities: any[]) {
+  const organiseActivities = useMemo(() => {
     const currentWorktimes: Row[] = [];
+
     for (let i = 6; i < 21; i++) {
       currentWorktimes.push({
         time: i,
@@ -138,7 +133,6 @@ export function CalendarMain() {
         // if (spanH / 5 === 1 && spanH !== 0) {
         //   const row = {activity: null, heightSpan: spanH};
         //   currentWorktimes[startIndex].days[i].push(row);
-
         //   spanH = 0;
         //   startIndex = -1;
         // }
@@ -150,16 +144,9 @@ export function CalendarMain() {
       }
     }
 
-    console.log('new');
+    // console.log('new', currentWorktimes);
     return currentWorktimes;
-  }
-
-  function get_YYYY_MM_DD(first: Date, last: Date) {
-    const firstDate = first.getFullYear() + '-' + (first.getMonth() + 1) + '-' + first.getDate();
-    const lastDate = last.getFullYear() + '-' + (last.getMonth() + 1) + '-' + last.getDate();
-
-    return [firstDate, lastDate];
-  }
+  }, [activities]);
 
   function updateDays(firstDay: Date) {
     const days = ['Po', 'Ut', 'Str', 'Št', 'Pia', 'So', 'Ne'];
@@ -174,10 +161,17 @@ export function CalendarMain() {
       }
     });
 
-    console.log(newDays);
+    // console.log(newDays);
     setFirstDay(firstDay);
 
     setDates(newDays);
+  }
+
+  function get_YYYY_MM_DD(first: Date, last: Date) {
+    const firstDate = first.getFullYear() + '-' + (first.getMonth() + 1) + '-' + first.getDate();
+    const lastDate = last.getFullYear() + '-' + (last.getMonth() + 1) + '-' + last.getDate();
+
+    return [firstDate, lastDate];
   }
 
   const moveWeekAhead = () => {
@@ -192,8 +186,18 @@ export function CalendarMain() {
     updateDays(newDate);
   };
 
+  if (!hasInitialized.current) {
+    const currDate = new Date();
+    const currDay = currDate.getDay() - 1;
+    const firstDay = new Date();
+    firstDay.setDate(currDate.getDate() - currDay);
+
+    updateDays(firstDay);
+    hasInitialized.current = true;
+  }
+
   return (
-    <div className=" bg-[#d3e1ff] rounded-lg border-2 border-[#0f285f] relative">
+    <div className=" bg-[#d3e1ff] rounded-lg border-2 border-[#5f0f0f] relative">
       <div className="flex flex-row justify-center">
         {createElement(LeftArrowIcon, {size: 40, color: '#0f285f', className: 'my-auto  mx-4', onClick: moveWeeBack})}
         <div className="flex flex-col">
@@ -207,11 +211,9 @@ export function CalendarMain() {
       </div>
 
       <section>
-        <div className=" grid grid-cols-[10%_repeat(5,_1fr)] grid-rows-[repeat(16,_auto)] gap-y-2 ">
-          <div className="row-start-1 col-start-1 col-span-1 w-[50%]"></div>
-
-          {[calendarHeader(currDates), ...calendarTable(activities)]}
-        </div>
+        <CalendarGrid
+          calendarItems={{dateID: firstDayInWeek, dayDates: currDates, activityRows: organiseActivities}}
+        ></CalendarGrid>
       </section>
     </div>
   );

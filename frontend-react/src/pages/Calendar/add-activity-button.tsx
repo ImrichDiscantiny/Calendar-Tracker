@@ -81,8 +81,8 @@ export function AddButton({time, spanY}: ActivityButton) {
         <input type="text" />
 
         <div className="my-2 flex flex-row justify-center text-[1.5rem]">
-          <button> {createElement(YesIcon, {className: ' text-[#0f285f] mx-3'})}</button>
-          <button> {createElement(CancelIcon, {className: 'text-[#0f285f] mx-3'})}</button>
+          <button> {createElement(YesIcon, {className: ' text-[#0f5f14] mx-3'})}</button>
+          <button onClick={addActivity}> {createElement(CancelIcon, {className: 'text-[#bf1f1f] mx-3'})}</button>
         </div>
       </form>
     );
