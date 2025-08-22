@@ -1,28 +1,17 @@
-import {createElement, FunctionComponent, useState, useRef, useEffect, useMemo} from 'react';
+import {createElement, FunctionComponent, useState, useRef, useEffect, useMemo, useContext} from 'react';
 import {IconBaseProps} from 'react-icons';
 import {FaArrowLeft} from 'react-icons/fa';
 import {FaArrowRight} from 'react-icons/fa';
 
 import {CalendarGrid} from './calendar-grid';
+import { Activity, Row } from './types';
 
-interface DayItem {
-  activity: any | null;
-  heightSpan: number;
-}
 
-interface Row {
-  time: number;
-  days: [DayItem[], DayItem[], DayItem[], DayItem[], DayItem[]];
-  isEmpty: boolean;
-  overlap: boolean;
-  maxHeight: number;
-  spanIndex: number[];
-}
 
 export function CalendarMain() {
   const [currDates, setDates] = useState(['Po', 'Ut', 'Str', 'Št', 'Pia', 'So', 'Ne']);
   const [firstDayInWeek, setFirstDay] = useState(new Date());
-  const [activities, setActivities] = useState<any[]>([]);
+  const [activities, setActivities] = useState<Activity[]>([]);
 
   const LeftArrowIcon = FaArrowLeft as FunctionComponent<IconBaseProps>;
   const RightArrowIcon = FaArrowRight as FunctionComponent<IconBaseProps>;
@@ -161,7 +150,6 @@ export function CalendarMain() {
       }
     });
 
-    // console.log(newDays);
     setFirstDay(firstDay);
 
     setDates(newDays);
@@ -209,12 +197,11 @@ export function CalendarMain() {
 
         {createElement(RightArrowIcon, {size: 40, color: '#0f285f', className: 'my-auto mx-4', onClick: moveWeekAhead})}
       </div>
-
+    
       <section>
-        <CalendarGrid
-          calendarItems={{dateID: firstDayInWeek, dayDates: currDates, activityRows: organiseActivities}}
-        ></CalendarGrid>
+        <CalendarGrid calendarItems={{dateID: firstDayInWeek, dayDates: currDates, activityRows: organiseActivities}} />
       </section>
+
     </div>
   );
 }

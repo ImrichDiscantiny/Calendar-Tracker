@@ -4,7 +4,7 @@ import {FaHourglassStart} from 'react-icons/fa';
 import {createElement, FunctionComponent} from 'react';
 import {IconBaseProps} from 'react-icons';
 
-export function Activity({activity}: {activity: any}) {
+export function ActivityItem({activity}: {activity: any}) {
   const currDate = new Date(activity.activity.activity_time_start);
   const endingDate = new Date(activity.activity.activity_time_end);
   const currTime = currDate.toLocaleTimeString();
