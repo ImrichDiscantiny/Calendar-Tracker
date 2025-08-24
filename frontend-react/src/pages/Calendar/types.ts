@@ -6,18 +6,63 @@ enum ActivityEnum {
   other = "other",
 }
 
-export interface Activity{
+interface activity {
   id: number;
   activity_name: string;
   activity_time_start: string;
   activity_time_end: string;
-  activity_type: ActivityEnum; // e.g. "workout"
+  activity_type: ActivityEnum;
   description: string;
   user_id: number;
   created_at: string;
   updated_at: string;
 }
 
+export class Activity {
+  id!: number;
+  activity_name!: string;
+  activity_time_start!: string;
+  activity_time_end!: string;
+  activity_type!: ActivityEnum;
+  description!: string;
+  user_id!: number;
+  created_at!: string;
+  updated_at!: string;
+
+  constructor(result: activity){
+
+    this.id = result.id;
+    this.activity_name = result.activity_name;
+    this.activity_time_start = result.activity_time_start;
+    this.activity_time_end = result.activity_time_end;
+    this.activity_type = result.activity_type
+    this.description = result.description
+    this.user_id = result.user_id
+    this.created_at = result.created_at
+    this.updated_at = result.updated_at;
+  }
+}
+
+
+export class ActivityFormInput {
+  index!: number;
+  j!: number;
+  span!: number;
+
+   constructor(index: number, j:number, span: number){
+
+    this.index = index
+    this.j = j
+    this.span = span
+
+    }
+}
+
+export interface CalendarItems {
+  dateID: Date;
+  activityRows: Row[];
+  dayDates: string[];
+}
 
 
 export interface DayItem {
@@ -35,13 +80,6 @@ export interface Row {
 }
 
 
-export interface ActivityFormInput {
-  index: number;
-  j: number;
-  span: number;
-}
-
-
 export type ButtonClick = (i: number, j: number, span: number) => void;
 
 export interface ActivityButton {
@@ -49,12 +87,5 @@ export interface ActivityButton {
   j: number;
   span: number;
   buttonClick: ButtonClick
-}
-
-
-export interface CalendarItems {
-  dateID: Date;
-  activityRows: Row[];
-  dayDates: string[];
 }
 

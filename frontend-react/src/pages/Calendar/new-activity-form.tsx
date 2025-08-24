@@ -11,8 +11,7 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
   
   console.log(span)
   for(let i=index; i < index + span;i++){
-      const row = <div
-      key={`${index + 2}-${j + 1}`}
+      const row = <div key={`c-${index + 2}-${j + 1}`}
       className="bg-[#d3e1ff] z-40 min-h-[40px]"
       style={{
           gridRowStart: i + 2,

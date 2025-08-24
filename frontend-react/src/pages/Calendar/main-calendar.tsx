@@ -28,13 +28,16 @@ export function CalendarMain() {
     fetch(`/api/activity/${first}/${last}`)
       .then((res) => res.json())
       .then((data) => {
-        setActivities(data.result);
+        const newActivities = data.result.map((data: any)=>{
+          return new Activity(data)
+        }) 
+        setActivities(newActivities);
       })
       .catch((err) => console.error('Fetch error:', err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstDayInWeek]);
 
-  const organiseActivities = useMemo(() => {
+  function organiseActivities () {
     const currentWorktimes: Row[] = [];
 
     for (let i = 6; i < 21; i++) {
@@ -135,7 +138,7 @@ export function CalendarMain() {
 
     // console.log('new', currentWorktimes);
     return currentWorktimes;
-  }, [activities]);
+  }
 
   function updateDays(firstDay: Date) {
     const days = ['Po', 'Ut', 'Str', 'Št', 'Pia', 'So', 'Ne'];
@@ -199,7 +202,7 @@ export function CalendarMain() {
       </div>
     
       <section>
-        <CalendarGrid calendarItems={{dateID: firstDayInWeek, dayDates: currDates, activityRows: organiseActivities}} />
+        <CalendarGrid calendarItems={{dateID: firstDayInWeek, dayDates: currDates, activityRows: organiseActivities()}} />
       </section>
 
     </div>
