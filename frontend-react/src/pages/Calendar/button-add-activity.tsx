@@ -5,7 +5,6 @@ import {createElement, FunctionComponent} from 'react';
 import { ActivityButton } from './types';
 
 
-
 export function AddButton({ i, j, span, buttonClick}: ActivityButton) {
   
   const PlusIcon = FaRegSquarePlus as FunctionComponent<IconBaseProps>;

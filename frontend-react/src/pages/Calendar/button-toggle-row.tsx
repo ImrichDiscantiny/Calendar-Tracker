@@ -2,7 +2,6 @@ import { useState } from "react";
 
 
 export function ToggleButton({day, index, clicked, colClick}: {day: string, index: number, clicked: boolean , colClick: CallableFunction}) {
-    const [clickedButton, setClicked] = useState(clicked);
 
     return (
         <div className={`bg-[#d3e1ff] row-start-1 col-start-${index + 2} col-span-1 `}>

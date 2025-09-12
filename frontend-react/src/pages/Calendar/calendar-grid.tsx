@@ -6,8 +6,7 @@ import {AddButton} from './button-add-activity';
 import { ToggleButton } from './button-toggle-row';
 import { ActivityForm } from './new-activity-form';
 import { CalendarItems, Activity, Row, DayItem, ActivityFormInput } from './types';
-import React from 'react';
-
+import {EmptyDiv} from './activity-empty-item'
 
 export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
 
@@ -111,7 +110,7 @@ export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
       // eslint-disable-next-line array-callback-return
       [timeDiv(row.time, maxHeight, i), ...row.days].forEach((day, j) => {
         if (row.isEmpty && !row.overlap && j !== 0) {
-          const e = <EmptyDiv key={`${i + 2}-${j + 1}`} i={i} j={j} borderColour={border_colour} hidden={false}/>;
+          const e = <EmptyDiv i={i} j={j} hidden={false} buttonMove={null}/>;
           items.push(e)
         }
      
@@ -140,7 +139,7 @@ export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
           }
     
           else {
-            const e =  <EmptyDiv key={`${i + 2}-${j + 1}`} i={i} j={j} borderColour={border_colour} hidden={true}/>;
+            const e =  <EmptyDiv i={i} j={j} hidden={true} buttonMove={null}/>;
             items.push(e)
           }
         }
@@ -194,14 +193,9 @@ export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
     );
   }
 
-  function EmptyDiv({i, j, borderColour, hidden}: {i: number; j: number; borderColour: string, hidden: boolean}) {
-    let h = ''
-    if(hidden=== true) h = 'hidden'
-    return <div className={`bg-[#d3e1ff] ${borderColour} row-start-${i + 2} col-start-${j + 1} col-span-1 row-span-1 z-20 min-h-[40px] ${h}`} />;
-  }
 
   return (
-    <div className="bg-[#c2c2c2] grid grid-cols-[10%_repeat(5,_1fr)] grid-rows-[repeat(16,_auto)] gap-y-[1px] ">
+    <div className="bg-[#c2c2c2] grid grid-cols-[10%_repeat(5,_1fr)] grid-rows-[repeat(16,_auto)] gap-y-[1px] select-none">
       <div className="bg-[#d3e1ff] row-start-1 col-start-1 col-span-1 w-fill"></div>
 
       {[calendarDays(calendarItems.dayDates), gridItems]}
