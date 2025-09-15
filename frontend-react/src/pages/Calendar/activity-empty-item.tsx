@@ -22,8 +22,9 @@ export function EmptyDiv({i, j, hidden, buttonMove}: {i: number; j: number; hidd
 
     const childRect =( e.target as HTMLDivElement).getBoundingClientRect();
     const relativeTop = childRect.top - parentRect.top;
-    console.log(e.pageY, parentRect.bottom,  parentRect.top,  parentRect.height)
-    buttonMove(parentRect.height, relativeTop, childRect.height)    
+    console.log("Empty e:", e.pageY, "parentTop:", parentRect.top, " childTop:", childRect.top)
+
+    buttonMove(e.pageY - childRect.top, relativeTop, childRect.height)    
   }
 
   useEffect(()=>{

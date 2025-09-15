@@ -11,9 +11,11 @@ import { EmptyDiv } from './activity-empty-item';
 export function ActivityForm({ index, j, span}: ActivityFormInput) {
 
   
-  const [rowOptions, setOptions] = useState<JSX.Element[]>([]);
   const [isMouseDown, setMouseDown] = useState(false);
+  const [rowOptions, setOptions] = useState<JSX.Element[]>([]);
 
+
+  const sliderWrapper  = useRef<HTMLDivElement | null>(null);
 
   const eventWrapper  = useRef<HTMLDivElement | null>(null);
   const currButton = useRef<HTMLDivElement | null>(null);
@@ -22,24 +24,22 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
   const grabOffsetY = useRef(0);
 
   const onMouseDown: MouseEventHandler<HTMLDivElement> = (e): void => {
-
     const el = e.currentTarget as HTMLDivElement;
-    currButton.current = el
-    const elRect = currButton.current.getBoundingClientRect();
-    if( el.id.includes("DragTop")) { 
-      grabOffsetY.current = e.pageY - elRect.top;        
-    }
-     
-    else if( el.id.includes("DragBottom")){
-      grabOffsetY.current =   elRect.bottom - e.pageY;
-    }
+    const elRect = el.getBoundingClientRect();
+
     
-    else return
+    if( el.id.includes("DragFirst")) secondButton.current = document.getElementById(`DragSecond-${index}-${j}`) as HTMLDivElement
+    
+    else secondButton.current = document.getElementById(`DragFirst-${index}-${j}`) as HTMLDivElement
+
+    if(e.pageY !== 0) grabOffsetY.current = e.pageY - elRect.top;
+    currButton.current =  e.currentTarget
+        
 
     eventWrapper.current!.addEventListener("mousemove", onMouseMove);
     eventWrapper.current!.addEventListener("mouseup", onMouseUp);
 
- 
+    console.log("id",  el.id, "ElRect", elRect.top, "pageY:", e.pageY)
 
   };
 
@@ -54,54 +54,19 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
     const parentTop = parentRect.top;
     const parentBottom = parentRect.bottom;
 
-    if( currButton.current.id.includes("DragTop")) {
-      const beforeTopY = currButton.current.getBoundingClientRect().top + 20  
-      const secondBottomY = secondButton.current.getBoundingClientRect().bottom - 20
-      const currValue = parseInt( currButton.current.style.top.replace('px', ''))
+    const currValue = pxToNum( currButton.current.style.top)
 
-      if(currValue < -1){
-        currButton.current.style.top = `${0}px`
-        window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
-        return
-      }
-
-      // if(beforeTopY > secondBottomY){
-      //   const overlap = beforeTopY + 20 - secondBottomY - 20
-      //   currButton.current.style.top = `${currValue - overlap}px`
-      //   window.dispatchEvent(new MouseEvent("mouseup", { bubbles: false }));
-      //   return
-      // }
+    if(currValue < -1){
+      currButton.current.style.top = `${0}px`
+      window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+      return
+    }
     
-      const y = e.pageY - parentTop - grabOffsetY.current;
+    const y = e.pageY - parentTop - grabOffsetY.current ;
+    currButton.current.style.top = `${y}px`
 
-      currButton.current.style.top = `${y}px`
-    }
+    updateSlider()
 
-    else if( currButton.current.id.includes("DragBottom")) {
-      
-
-      const beforeBottomY = currButton.current.getBoundingClientRect().bottom - 20  
-      const secondTopY = secondButton.current.getBoundingClientRect().top + 20
-      const currValue = parseInt( currButton.current.style.bottom.replace('px', ''))
-      const relativeToTop =  parentBottom - currValue - 1
-
-      if( relativeToTop > parentBottom){
-        currButton.current.style.bottom = `${0}px`
-        window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
-        return
-      }
-
-      // if(beforeBottomY < secondTopY){
-      //   const overlap = beforeBottomY + 20 - secondTopY - 20
-      //   currButton.current.style.bottom = `${currValue + overlap}px`
-      //   window.dispatchEvent(new MouseEvent("mouseup", { bubbles: false }));
-      //   return
-      // }
-      
-      const y = parentBottom - e.pageY - grabOffsetY.current;
-      console.log(secondButton.current.style.bottom, parentBottom, e.pageY, grabOffsetY.current, y)
-      currButton.current.style.bottom = `${y}px`
-    }
   }
 
   const onMouseUp = (e: MouseEvent): void =>{
@@ -109,30 +74,66 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', onMouseUp)
 
+      analyseLastPosition()
+
       currButton.current = null
     }
+  }
 
+  const positionButton = (pageYOffset: number, relativeTop: number, rectHeight: number) =>{
+    setMouseDown(true)
+
+    grabOffsetY.current = pageYOffset
+
+    const firstButton = document.getElementById(`DragFirst-${index}-${j}`) as HTMLDivElement
+    const secondButton = document.getElementById(`DragSecond-${index}-${j}`) as HTMLDivElement
+
+    firstButton.style.top = `${relativeTop}px`
+    firstButton.style.height = `${rectHeight}px` 
+
+    secondButton.style.top = `${relativeTop}px`
+    secondButton.style.height = `${rectHeight}px`
+
+    secondButton.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+  }
+
+
+  function updateSlider(){
+    const currValue = pxToNum( currButton.current!.style.top)
+    const secondValue = pxToNum(  secondButton.current!.style.top)
+
+    const currRect =  secondButton.current?.getBoundingClientRect();
+    const secondRect =  secondButton.current?.getBoundingClientRect();
+
+    const currH = currRect!.height
+    const secondH = secondRect!.height
+
+
+    if(currValue + currH <= secondValue){
+      // console.log((eventWrapper.current!.getBoundingClientRect().height - secondValue).toString() + "px" )
+      sliderWrapper.current!.style.top =  (currValue + currH).toString()  + "px"
+      sliderWrapper.current!.style.height = ( secondValue - currValue).toString() + "px"
+    } 
+
+    else {
+      sliderWrapper.current!.style.top = (secondValue + secondH).toString()  + "px"
+      sliderWrapper.current!.style.height = ( currValue - secondValue ).toString() + "px"
+    }
+    
+  }
+
+  function analyseLastPosition(){
+
+
+    rowOptions.map((el)=>{
+      console.log(el.props)
+    })
 
   }
 
-  const positionButton = (parentHeight: number, relativeTop: number, rectHeight: number) =>{
-    if(isMouseDown) return
 
-    setMouseDown(true)
-
-    currButton.current = document.getElementById(`DragTop-${index}-${j}`) as HTMLDivElement
-    secondButton.current = document.getElementById(`DragBottom-${index}-${j}`) as HTMLDivElement
-
-    currButton.current.style.top = `${relativeTop}px`
-    currButton.current.style.height = `${rectHeight}px` 
-
-    secondButton.current.style.bottom = `${parentHeight - relativeTop - rectHeight}px`
-    secondButton.current.style.height = `${rectHeight}px`
-    
-    secondButton.current.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-
-    console.log(secondButton.current.style.bottom)
-
+  function pxToNum(targetString: string){
+    return parseInt(targetString.replace('px', ''))
   }
 
   
@@ -150,21 +151,9 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
 
 
   useEffect(() =>{
-
-    let currOptions:JSX.Element[] = []
-    eventWrapper.current!.addEventListener("mouseleave", onMouseUp);
-
-    if(rowOptions.length === 0){
-
-      currOptions = getRows()
-      setOptions(currOptions)
-      return
-    }
-    else(
-      currOptions = rowOptions
-    )
     
-   
+    eventWrapper.current!.addEventListener("mouseleave", onMouseUp);
+    setOptions(getRows)
   }, [])
 
   return (
@@ -179,82 +168,16 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
         gridColumnEnd: j + 2,
       }}       
     >
+       
+      <DraggableButton onMouseDown={onMouseDown} id={`DragFirst-${index}-${j}`} mouseDown={isMouseDown}/>
+      <DraggableButton onMouseDown={onMouseDown} id={`DragSecond-${index}-${j}`}  mouseDown={isMouseDown}/>
 
-      <DraggableButton onMouseDown={onMouseDown} id={`DragTop-${index}-${j}`} mouseDown={isMouseDown}/>
-      <DraggableButton onMouseDown={onMouseDown} id={`DragBottom-${index}-${j}`}  mouseDown={isMouseDown}/>
+      <div ref={sliderWrapper} id={`slider-${index}-${j}`}  className={`absolute top-0 bg-[#b0ff9a33]  z-50 w-full h-[20px] ${isMouseDown? '': 'hidden'} pointer-events-none`} ></div>
 
       <>{rowOptions}</>
     
     </div>   
   )
 
- 
 }
 
-// const [start, setStart] = useState('');
-  // const YesIcon = FaCheck as FunctionComponent<IconBaseProps>;
-  // const CancelIcon = MdCancel as FunctionComponent<IconBaseProps>;
-
-  // const defaultOption = 'Not picked';
-
-// const addTimeStart = (e: React.ChangeEvent<HTMLSelectElement>) => {
-  //   setStart(e.target.value);
-  // };
-
-  // function TimeStartOptions() {
-  //   const def = <option selected={true}>{defaultOption}</option>;
-  //   const options = [def];
-
-  //   for (let i = 0; i < spanY; i++) {
-  //     const currTime = (time + i).toString() + ':00';
-  //     const option = <option value={currTime}>{currTime}</option>;
-  //     options.push(option);
-  //   }
-
-  //   return options;
-  // }
-
-  // function TimeEndOptions() {
-  //   const currTimeStart = parseInt(start.split(':')[0]);
-  //   const options = [];
-
-  //   for (let i = currTimeStart; i < time + spanY; i++) {
-  //     const currTime = i.toString() + ':00';
-  //     const option = <option value={currTime}>{currTime}</option>;
-  //     options.push(option);
-  //   }
-
-  //   return options;
-  // }
-
-  // return (
-    //   <form className="border-box flex flex-col" action="">
-    //     <label>Activity name</label>
-    //     <input type="text" />
-
-    //     <label>Day</label>
-
-    //     <input type="date" />
-
-    //     <label>From</label>
-
-    //     <select defaultValue={'No Time Selected'} onChange={addTimeStart} id="timeStartSelecId" name="timeStartSelect">
-    //       {TimeStartOptions()}
-    //     </select>
-
-    //     <label>End</label>
-
-    //     <select defaultValue={'No Time Selected'} id="timeEndSelecId" name="timeEndSelect">
-    //       {TimeEndOptions()}
-    //     </select>
-
-    //     <label>Type</label>
-
-    //     <input type="text" />
-
-    //     <div className="my-2 flex flex-row justify-center text-[1.5rem]">
-    //       <button> {createElement(YesIcon, {className: ' text-[#0f5f14] mx-3'})}</button>
-    //       <button onClick={addActivity}> {createElement(CancelIcon, {className: 'text-[#bf1f1f] mx-3'})}</button>
-    //     </div>
-    //   </form>
-    // );
