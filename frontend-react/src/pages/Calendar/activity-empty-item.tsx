@@ -1,7 +1,7 @@
 import { MouseEventHandler, useEffect, useRef } from "react";
 
 
-export function EmptyDiv({i, j, hidden, buttonMove}: {i: number; j: number; hidden: boolean, buttonMove: null | CallableFunction}) {
+export function EmptyDiv({i, j, hidden, buttonMove, buttonMouseUp}: {i: number; j: number; hidden: boolean, buttonMove: null | CallableFunction, buttonMouseUp: null | CallableFunction}) {
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const childRefs = {
@@ -19,10 +19,10 @@ export function EmptyDiv({i, j, hidden, buttonMove}: {i: number; j: number; hidd
     const parent = wrapperRef.current.parentElement as HTMLElement;
     const parentRect = parent.getBoundingClientRect();
 
-
     const childRect =( e.target as HTMLDivElement).getBoundingClientRect();
     const relativeTop = childRect.top - parentRect.top;
-    console.log("Empty e:", e.pageY, "parentTop:", parentRect.top, " childTop:", childRect.top)
+
+    console.log()
 
     buttonMove(e.pageY - childRect.top, relativeTop, childRect.height)    
   }
@@ -33,7 +33,7 @@ export function EmptyDiv({i, j, hidden, buttonMove}: {i: number; j: number; hidd
 
 
   return (
-    <div  ref={wrapperRef}  key={`p-${i + 2}-${j + 1}`}
+    <div id={`select-${i + 2}-${j + 1}`}  ref={wrapperRef}
         className={`bg-[#d3e1ff]  z-10 min-h-[40px] ${hidden?'hidden':''}  border-none`}
         style={{
             gridRowStart: i,

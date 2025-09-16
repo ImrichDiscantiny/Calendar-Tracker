@@ -1,19 +1,14 @@
 
 
-import {useState, createElement, FunctionComponent, useEffect, useRef, JSX, MouseEventHandler} from 'react';
+import {useState, useEffect, useRef, JSX, MouseEventHandler} from 'react';
 import { ActivityFormInput} from './types';
 import {DraggableButton} from './button-draggable'
 import { EmptyDiv } from './activity-empty-item';
 
+export function ActivityForm({ index, j, span, selectOptionClick, colClick}: ActivityFormInput) {
 
-
-
-export function ActivityForm({ index, j, span}: ActivityFormInput) {
-
-  
   const [isMouseDown, setMouseDown] = useState(false);
   const [rowOptions, setOptions] = useState<JSX.Element[]>([]);
-
 
   const sliderWrapper  = useRef<HTMLDivElement | null>(null);
 
@@ -35,30 +30,28 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
     if(e.pageY !== 0) grabOffsetY.current = e.pageY - elRect.top;
     currButton.current =  e.currentTarget
         
-
     eventWrapper.current!.addEventListener("mousemove", onMouseMove);
     eventWrapper.current!.addEventListener("mouseup", onMouseUp);
+    eventWrapper.current!.addEventListener("mouseleave", onMouseUp);
 
-    console.log("id",  el.id, "ElRect", elRect.top, "pageY:", e.pageY)
+
+    selectOptionClick(index, j-1, span)
 
   };
 
   const onMouseMove = (e: MouseEvent): void => {
    
     if( currButton.current === null ||  secondButton.current === null ) return
-
    
     const parent = eventWrapper.current!
     const parentRect = parent.getBoundingClientRect();
-    
     const parentTop = parentRect.top;
-    const parentBottom = parentRect.bottom;
 
     const currValue = pxToNum( currButton.current.style.top)
 
     if(currValue < -1){
       currButton.current.style.top = `${0}px`
-      window.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
+      eventWrapper.current!.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
       return
     }
     
@@ -71,10 +64,18 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
 
   const onMouseUp = (e: MouseEvent): void =>{
     if(currButton.current !== null || secondButton.current !== null){
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('mouseup', onMouseUp)
+      eventWrapper.current!.removeEventListener('mousemove', onMouseMove)
+      eventWrapper.current!.removeEventListener('mouseup', onMouseUp)
+      eventWrapper.current!.removeEventListener('mouseleave', onMouseUp)
 
-      analyseLastPosition()
+      currButton.current!.style.pointerEvents = "none";
+
+
+      const underneath = document.elementFromPoint(e.clientX, e.clientY);
+      console.log(underneath)
+
+      alignButtonPos()
+      currButton.current!.style.pointerEvents = "auto";
 
       currButton.current = null
     }
@@ -102,33 +103,23 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
     const currValue = pxToNum( currButton.current!.style.top)
     const secondValue = pxToNum(  secondButton.current!.style.top)
 
-    const currRect =  secondButton.current?.getBoundingClientRect();
-    const secondRect =  secondButton.current?.getBoundingClientRect();
+    const currH =  currButton.current?.getBoundingClientRect().height;
+    const secondH =  secondButton.current?.getBoundingClientRect().height;
 
-    const currH = currRect!.height
-    const secondH = secondRect!.height
-
-
-    if(currValue + currH <= secondValue){
-      // console.log((eventWrapper.current!.getBoundingClientRect().height - secondValue).toString() + "px" )
-      sliderWrapper.current!.style.top =  (currValue + currH).toString()  + "px"
+    if(currValue + currH! <= secondValue){
+      sliderWrapper.current!.style.top =  (currValue + currH!).toString()  + "px"
       sliderWrapper.current!.style.height = ( secondValue - currValue).toString() + "px"
     } 
 
     else {
-      sliderWrapper.current!.style.top = (secondValue + secondH).toString()  + "px"
+      sliderWrapper.current!.style.top = (secondValue + secondH!).toString()  + "px"
       sliderWrapper.current!.style.height = ( currValue - secondValue ).toString() + "px"
     }
-    
   }
 
-  function analyseLastPosition(){
+  const alignButtonPos = () =>{
 
-
-    rowOptions.map((el)=>{
-      console.log(el.props)
-    })
-
+    
   }
 
 
@@ -142,7 +133,7 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
     
     for(let i=0; i <  span + 0; i++){
 
-      const e =  <EmptyDiv buttonMove={positionButton} i={i + 1} j={1} hidden={false}/>;
+      const e =  <EmptyDiv  key={`select-${i + 2}-${j + 1}`} buttonMove={positionButton} buttonMouseUp={alignButtonPos} i={i + 1} j={1} hidden={false}/>;
       divRows.push(e)
     }
 
@@ -151,10 +142,10 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
 
 
   useEffect(() =>{
-    
-    eventWrapper.current!.addEventListener("mouseleave", onMouseUp);
+    setMouseDown(colClick)
+    console.log(colClick)
     setOptions(getRows)
-  }, [])
+  }, [colClick])
 
   return (
     <div        
@@ -172,7 +163,7 @@ export function ActivityForm({ index, j, span}: ActivityFormInput) {
       <DraggableButton onMouseDown={onMouseDown} id={`DragFirst-${index}-${j}`} mouseDown={isMouseDown}/>
       <DraggableButton onMouseDown={onMouseDown} id={`DragSecond-${index}-${j}`}  mouseDown={isMouseDown}/>
 
-      <div ref={sliderWrapper} id={`slider-${index}-${j}`}  className={`absolute top-0 bg-[#b0ff9a33]  z-50 w-full h-[20px] ${isMouseDown? '': 'hidden'} pointer-events-none`} ></div>
+      <div ref={sliderWrapper} id={`slider-${index}-${j}`}  className={`absolute top-0 bg-[#b0ff9a33]  z-40 w-full h-[20px] ${isMouseDown? '': 'hidden'} pointer-events-none`} ></div>
 
       <>{rowOptions}</>
     

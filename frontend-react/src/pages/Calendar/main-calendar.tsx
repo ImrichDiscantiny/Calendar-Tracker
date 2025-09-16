@@ -66,8 +66,6 @@ export function CalendarMain() {
 
       const workIndex = startHours - 6;
 
-      // console.log(activities[i], workIndex, startHours);
-
       for (let j = workIndex; j < workIndex + duration; j++) {
         const currTime = currentWorktimes[j];
 
@@ -81,7 +79,9 @@ export function CalendarMain() {
 
           currTime.isEmpty = false;
           saved = true;
-        } else if (saved && spanCounter > 0) {
+        } 
+        
+        else if (saved && spanCounter > 0) {
           currTime.overlap = true;
           spanCounter--;
           currTime.spanIndex.push(dayIndex + 1);
@@ -100,14 +100,17 @@ export function CalendarMain() {
           if (startIndex === -1) {
             startIndex = j;
             currentWorktimes[j].isEmpty = false;
-          } else {
+          } 
+          else {
             currentWorktimes[j].overlap = true;
             currentWorktimes[j].spanIndex.push(i + 1);
           }
           spanH++;
-        } else if (currentWorktimes[j].days[i].length !== 0) {
+        } 
+        
+        else if (currentWorktimes[j].days[i].length !== 0) {
           let jumpSpan = 0;
-          currentWorktimes[j].days[i].map((day) => {
+          currentWorktimes[j].days[i].forEach((day) => {
             if (day.heightSpan > jumpSpan) {
               jumpSpan = day.heightSpan;
             }
@@ -146,9 +149,9 @@ export function CalendarMain() {
     const newDays = currDates.map((day, index) => {
       if (index === 0) {
         return days[0] + ' - ' + firstDay.getDate() + '.' + (firstDay.getMonth() + 1);
-      } else {
+      } 
+      else {
         const currDate = new Date(firstDay.getTime() + index * 24 * 60 * 60 * 1000);
-
         return days[index] + ' - ' + currDate.getDate() + '.' + (currDate.getMonth() + 1);
       }
     });

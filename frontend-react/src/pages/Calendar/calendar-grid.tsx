@@ -2,11 +2,11 @@ import { useState, useEffect, JSX, useCallback} from 'react';
 
 
 import {ActivityItem} from './activity-item';
-import {AddButton} from './button-add-activity';
 import { ToggleButton } from './button-toggle-row';
 import { ActivityForm } from './new-activity-form';
-import { CalendarItems, Activity, Row, DayItem, ActivityFormInput } from './types';
+import { CalendarItems, Activity, Row, DayColumn} from './types';
 import {EmptyDiv} from './activity-empty-item'
+
 
 export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
 
@@ -16,59 +16,49 @@ export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
 
   const [daysClicked, setDays] = useState<boolean[]>([false, false, false, false, false, false, false])
 
+  
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   function getFullLayout(){
   
-    if(baseLayout.length !== 0){
-      return baseLayout
-    }
-
+    if(baseLayout.length !== 0) return baseLayout
+    
     return calendarItems.activityRows
   }
 
-  const addButtonClick = useCallback((i: number, j: number, span: number) =>{
+  const selectOptionClick = useCallback((i: number, j: number, span: number) =>{
 
+    const d = [...daysClicked]
     let rowsItems = getFullLayout()
-    const d = daysClicked
-    
-    const newLayout: Row[] = rowsItems.map((row, idx) => {
-      const newDays: DayItem[][] = row.days.map((day, jdx) => { 
+   
+    rowsItems.forEach((row, idx) => {
+      row.days.forEach((day, jdx) => { 
 
         if (idx !== i || jdx !== j) return day;
 
         if (day[0]) {
-
           d[j] = true
-
-          const updatedActivity: ActivityFormInput = new ActivityFormInput(i, j + 1, span );
-
-          return day.map((cell, k) =>
-            k === 0 ? { ...cell, activity: updatedActivity } : cell
-          );
         }
 
-        return day;
       });
 
-      return { ...row, days: newDays };
     });
-
-    setLayout(newLayout); 
+    console.log(d)
     setDays(d)
 
-  }, [daysClicked, getFullLayout, baseLayout])
+  }, [daysClicked, getFullLayout,])
 
 
   const columnClick = useCallback((isClicked: boolean, j: number) =>{
     let rowsItems = getFullLayout()
     
     if(isClicked){
-      const d = daysClicked
+      const d = [...daysClicked]
 
       const newLayout: Row[] = rowsItems.map((row) => {
-        const newDays: DayItem[][] = row.days.map((day, jdx) => { 
+        const newDays: DayColumn[][] = row.days.map((day, jdx) => { 
           if (jdx !== j || day[0] === null) return day;
 
-          if (day[0] && day[0].activity instanceof ActivityFormInput) {
+          if (day[0] && day[0].activity === null) {
 
             d[j] = false
 
@@ -83,7 +73,7 @@ export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
         return { ...row, days: newDays };
       });
 
-    setLayout(newLayout); // single call at the end
+    setLayout(newLayout); 
     setDays(d)
 
     }
@@ -110,7 +100,7 @@ export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
       // eslint-disable-next-line array-callback-return
       [timeDiv(row.time, maxHeight, i), ...row.days].forEach((day, j) => {
         if (row.isEmpty && !row.overlap && j !== 0) {
-          const e = <EmptyDiv i={i} j={j} hidden={false} buttonMove={null}/>;
+          const e = <EmptyDiv i={i} j={j} hidden={false} buttonMove={null} buttonMouseUp={null}/>;
           items.push(e)
         }
      
@@ -126,20 +116,16 @@ export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
               const a =  <ActivityDiv key={`${i + 2}-${j + 1}`} i={i} j={j} borderColour={border_colour} maxHeight={maxHeight} activity={activity} />
               items.push(a)
             }
-
-            else if (activity.activity !== null &&  activity.activity instanceof ActivityFormInput){
-              const f = <ActivityForm index={activity.activity.index} j={activity.activity.j} span={activity.activity.span}></ActivityForm>
-              items.push(f)
-            }
             
             else {
-              const b = <AddButton i={i} j={j} span={activity.heightSpan} buttonClick={addButtonClick}></AddButton>
-              items.push(b)
+              const f = <ActivityForm key={`${i + 2}-${j + 1}`} index={i} j={j} span={activity.heightSpan} selectOptionClick={selectOptionClick} colClick={daysClicked[j-1]}></ActivityForm>
+              // const b = <AddButton i={i} j={j} span={activity.heightSpan} buttonClick={addButtonClick}></AddButton>
+              items.push(f)
             }
           }
     
           else {
-            const e =  <EmptyDiv i={i} j={j} hidden={true} buttonMove={null}/>;
+            const e = <EmptyDiv i={i} j={j} hidden={true} buttonMouseUp={null} buttonMove={null}/>;
             items.push(e)
           }
         }
@@ -152,13 +138,13 @@ export function CalendarGrid({calendarItems}: {calendarItems: CalendarItems}) {
 
     setItems(items)
     
-  },[ baseLayout])
+  },[baseLayout, daysClicked ])
 
   function calendarDays(days: string[]) {
     return days.map((day, index) => {
       if (index < 5) {
         return (
-         <ToggleButton day={day} index={index} clicked={daysClicked[index]} colClick={columnClick}></ToggleButton>
+         <ToggleButton key={index}   day={day} index={index} clicked={daysClicked[index]} colClick={columnClick}></ToggleButton>
         );
       }
       return null

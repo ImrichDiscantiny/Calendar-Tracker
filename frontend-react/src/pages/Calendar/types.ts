@@ -44,18 +44,13 @@ export class Activity {
 }
 
 
-export class ActivityFormInput {
-  index!: number;
-  j!: number;
-  span!: number;
+export interface ActivityFormInput {
+  index: number;
+  j: number;
+  span: number;
+  selectOptionClick: CallableFunction
+  colClick: boolean;
 
-   constructor(index: number, j:number, span: number){
-
-    this.index = index
-    this.j = j
-    this.span = span
-
-    }
 }
 
 export interface CalendarItems {
@@ -65,14 +60,14 @@ export interface CalendarItems {
 }
 
 
-export interface DayItem {
+export interface DayColumn {
   activity: Activity | ActivityFormInput | null;
   heightSpan: number;
 }
 
 export interface Row {
   time: number;
-  days: DayItem[][];
+  days: DayColumn[][];
   isEmpty: boolean;
   overlap: boolean;
   maxHeight: number;
